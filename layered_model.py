@@ -3,12 +3,19 @@ from tensorflow import keras
 from tensorflow.keras import layers
 import tensorflow as tf
 
+from keras.models import Sequential
+from keras.layers import Dense
+from keras.optimizers import Adam
+
 def define_dense_model_single_layer(input_length, activation_f='sigmoid', output_length=1):
     """Define a dense model with a single layer with the following parameters:
     input_length: the number of inputs
     activation_f: the activation function
     output_length: the number of outputs (number of neurons)"""
-    model = None
+
+    model = Sequential()
+    model.add(Dense(units=output_length, input_dim=input_length, activation=activation_f))
+    return model
 
 def define_dense_model_with_hidden_layer(input_length, 
                                          activation_func_array=['relu','sigmoid'],
@@ -20,7 +27,13 @@ def define_dense_model_with_hidden_layer(input_length,
     hidden_layer_size: the number of neurons in the hidden layer
     output_length: the number of outputs (number of neurons in the output layer)"""
 
-    model = None
+    model = Sequential()
+    # Add a hidden layer with the specified activation function and number of neurons
+    model.add(Dense(units=hidden_layer_size, input_dim=input_length, activation=activation_func_array[0]))
+    
+    # Add the output layer with the specified activation function and number of neurons
+    model.add(Dense(units=output_length, activation=activation_func_array[1]))
+    
     return model
 
 
@@ -43,7 +56,16 @@ def fit_mnist_model_single_digit(x_train, y_train, target_digit, model, epochs=1
 
     then fit the model on the training data. (pass the epochs and batch_size params)
     """
+    # model = define_dense_model_with_hidden_layer(784,)
+    # Compile the model with specified optimizer, loss function, and metrics
+    optimizer = Adam(learning_rate=0.01)  # You can adjust the learning rate as needed
+    loss_function = 'binary_crossentropy'  # Since you mentioned binary crossentropy
+    metrics_list = ['accuracy']
+
+    model.compile(optimizer=optimizer, loss=loss_function, metrics=metrics_list,)
     y_train = binarize_labels(y_train, target_digit)
+    model.fit(x_train, y_train, epochs=epochs, batch_size=batch_size)
+
     return model
 
 def evaluate_mnist_model_single_digit(x_test, y_test, target_digit, model):
@@ -51,5 +73,6 @@ def evaluate_mnist_model_single_digit(x_test, y_test, target_digit, model):
     Hint: use model.evaluate() to evaluate the model on the test data.
     """
     y_test = binarize_labels(y_test, target_digit)
-    loss, accuracy = None, None  ## change this.
+    loss, accuracy = model.evaluate(x_test, y_test)  ## change this.
+    print(accuracy)
     return loss, accuracy
